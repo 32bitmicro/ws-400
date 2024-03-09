@@ -8,15 +8,10 @@ LIBS=
 OPTLEVEL=s
 HEXFORMAT=ihex
 
-AVRDUDE_PROD_PROGRAMMERID=stk500v2
-AVRDUDE_PROD_OPTS=-P avrdoper -V
-
-AVRDUDE_DEV_PROGRAMMERID=wiring
-AVRDUDE_DEV_OPTS=-D -P /dev/ttyUSB1 -b115200
-
 # compiler
 CFLAGS=-I. $(INC) -g -mmcu=$(MCU) -O$(OPTLEVEL) \
 	-std=gnu99 $(DEFINES)			\
+	--param=min-pagesize=0                  \
 	-fpack-struct -fshort-enums             \
 	-funsigned-bitfields -funsigned-char    \
 	-Wall \
@@ -100,20 +95,16 @@ stats: $(TRG)
 
 hex: $(HEXTRG)
 
-dev: hex
-	$(AVRDUDE) -c $(AVRDUDE_DEV_PROGRAMMERID)   \
-	 -p $(PROGRAMMER_MCU)                   \
-	 $(AVRDUDE_DEV_OPTS)			\
-	 -U flash:w:$(HEXROMTRG)
+.check-programmer-var:
+	@test -n "$${AVRDUDE_PROGRAMMER}" || (echo Please set environment variable AVRDUDE_PROGRAMMER to define options for your programmer \(eg. \"-c stk500v2 -P avrdoper\"\) && exit 1)
 
-prod: hex
-	$(AVRDUDE) -c $(AVRDUDE_PROD_PROGRAMMERID)   \
-	 -p $(PROGRAMMER_MCU)                   \
-	 $(AVRDUDE_PROD_OPTS)			\
-	 -U flash:w:$(HEXROMTRG)
+writeflash: hex .check-programmer-var
+	$(AVRDUDE) $(AVRDUDE_PROGRAMMER) -p $(PROGRAMMER_MCU) -e -U flash:w:$(HEXROMTRG)
 
 fuses:
 	avrdude -e -c $(AVRDUDE_PROD_PROGRAMMERID) -p $(PROGRAMMER_MCU) -D $(AVRDUDE_PROD_OPTS) -U lfuse:w:0xE2:m -U hfuse:w:0xD9:m
+
+install: writeflash
 
 $(DUMPTRG): $(TRG) 
 	$(OBJDUMP) -S  $< > $@

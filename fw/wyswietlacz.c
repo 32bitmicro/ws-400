@@ -315,8 +315,8 @@ void setup()
 		mcp23017_write_register(dev+i, MCP23017_IODIRB, 0xff);
 		mcp23017_write_register(dev+i, MCP23017_IPOLA, 0);
 		mcp23017_write_register(dev+i, MCP23017_IPOLB, 0);
-		mcp23017_write_register(dev+i, MCP23017_GPPUA, 0);
-		mcp23017_write_register(dev+i, MCP23017_GPPUB, 0);
+		mcp23017_write_register(dev+i, MCP23017_GPPUA, 0xff);
+		mcp23017_write_register(dev+i, MCP23017_GPPUB, 0xff);
 	}
 
 	// setup LCD
